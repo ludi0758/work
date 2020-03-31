@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"      
+ "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="cn.tedu.store.mapper.CartMapper">
+	
+	<!-- 插入购物车数据 -->
+	<insert id="insert" useGeneratedKeys="true" keyProperty="cid">
+		INSERT INTO t_cart (
+			uid, pid, num, price, 
+			created_user, created_time, modified_user, modified_time
+		) VALUES (
+			#{uid}, #{pid}, #{num}, #{price}, 
+			#{createdUser}, #{createdTime}, #{modifiedUser}, #{modifiedTime}
+		)
+	</insert>
+	
+	
+	<!-- 删除某用户的若干个购物车数据 -->
+	<delete id="deletByCids">
+		delete from t_cart where uid=#{uid} and cid in
+		<foreach collection="cids" item="cid" separator="," open="(" close=")">
+			#{cid}
+		</foreach> 
+	</delete>
+	
+	<!-- 修改购物车中商品的数量 -->
+	<update id="updateNumByCid">
+		update t_cart set num=#{num},modified_user=#{modifiedUser},
+		modified_time=#{modifiedTime} where cid=#{cid}
+	</update>
+	
+	<!-- 根据购物车数据的id查询购物车详情 -->
+	<select id="findByCid" resultType="cn.tedu.store.entity.Cart">
+		select * from t_cart where cid=#{cid}
+	</select>
+	
+	<!-- 查询某用户在购物车添加的某商品的详情 -->
+	<select id="findByUidAndPid" resultType="cn.tedu.store.entity.Cart">
+		select * from t_cart where uid=#{uid} and pid=#{pid}
+	</select>
+	
+	
+	<!-- 查询某用户的购物车列表 -->
+	<select id="findByUid" resultType="cn.tedu.store.vo.CartVO">
+		select 
+  			cid, uid, pid, t_cart.num, t_cart.price,
+  			title, t_product.price AS realPrice, image
+		from 
+			t_cart 
+		left join 
+		    t_product 
+		on 
+		    t_cart.pid=t_product.id 
+		where 
+		    uid=#{uid}
+		order by 
+		    t_cart.created_time desc
+	</select>
+	
+	<!-- 查询若干个数据id匹配的购物车列表 -->
+	<select id="findByCids" resultType="cn.tedu.store.vo.CartVO">
+		select 
+  			cid, uid, pid, t_cart.num, t_cart.price,
+  			title, t_product.price AS realPrice, image
+		from 
+			t_cart 
+		left join 
+		    t_product 
+		on 
+		    t_cart.pid=t_product.id 
+		where 
+		    cid in
+		    <foreach collection="array" item="cid" separator="," open="(" close=")">
+		    	#{cid}
+		    </foreach>
+		order by 
+		    t_cart.created_time desc
+	</select>
+	
+	
+	
+</mapper>
